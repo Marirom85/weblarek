@@ -8,14 +8,13 @@ import {
 	formatPrice,
 } from '../../utils/utils';
 import { EventEmitter } from './events';
+import { BasketItem } from './BasketItem';
 
 export class Basket {
 	protected element: HTMLElement;
 	protected list: HTMLElement;
 	protected totalElement: HTMLElement;
 	protected button: HTMLButtonElement | null = null;
-	protected items: IProductModel[] = [];
-	protected total = 0;
 	protected events: EventEmitter;
 
 	constructor(events: EventEmitter) {
@@ -44,7 +43,8 @@ export class Basket {
 	 * Обработчик клика по кнопке оформления заказа
 	 */
 	protected handleOrderClick(event: Event): void {
-		if (this.items.length > 0) {
+		// Проверяем, есть ли товары в корзине по наличию элементов в списке
+		if (this.list.children.length > 0 && !this.list.querySelector('p')) {
 			this.events.emit(EVENTS.ORDER_START);
 		}
 	}
@@ -54,26 +54,10 @@ export class Basket {
 	 * Обновить корзину
 	 */
 	updateBasket(items: IProductModel[]): void {
-		this.items = items;
-		this.renderBasket();
-	}
-
-	/**
-	 * Обновить общую стоимость
-	 */
-	updateTotal(total: number): void {
-		this.total = total;
-		setText(this.totalElement, formatPrice(this.total));
-	}
-
-	/**
-	 * Рендер списка товаров
-	 */
-	protected renderBasket(): void {
 		// Очищаем список
 		this.list.innerHTML = '';
 
-		if (this.items.length === 0) {
+		if (items.length === 0) {
 			// Показываем сообщение о пустой корзине
 			const emptyMessage = document.createElement('p');
 			emptyMessage.textContent = 'Корзина пуста';
@@ -81,15 +65,16 @@ export class Basket {
 			emptyMessage.style.padding = '20px';
 			this.list.appendChild(emptyMessage);
 		} else {
-			// Добавляем товары
-			this.items.forEach((item, index) => {
-				const itemElement = this.createBasketItem(item, index);
-				this.list.appendChild(itemElement);
+			// Добавляем товары через представление BasketItem
+			items.forEach((item, index) => {
+				const basketItem = new BasketItem(item, this.events);
+				basketItem.setIndex(index);
+				this.list.appendChild(basketItem.render());
 			});
 		}
 
 		// Добавляем скролл если много товаров
-		if (this.items.length >= 4) {
+		if (items.length >= 4) {
 			this.list.style.maxHeight = '414px';
 			this.list.style.overflowY = 'auto';
 		} else {
@@ -99,65 +84,17 @@ export class Basket {
 
 		// Обновляем состояние кнопки
 		if (this.button) {
-			this.button.disabled = this.items.length === 0;
+			this.button.disabled = items.length === 0;
 		}
 	}
 
 	/**
-	 * Создать элемент товара в корзине
+	 * Обновить общую стоимость
 	 */
-	protected createBasketItem(
-		product: IProductModel,
-		index: number
-	): HTMLElement {
-		const template = cloneTemplate(TEMPLATES.CARD_BASKET);
-		const item = template.querySelector(
-			`.${CSS_CLASSES.BASKET_ITEM}`
-		) as HTMLElement;
-
-		// Устанавливаем индекс
-		item.setAttribute('data-index', index.toString());
-
-		// Устанавливаем заголовок
-		const title = item.querySelector(
-			`.${CSS_CLASSES.CARD_TITLE}`
-		) as HTMLElement;
-		if (title) {
-			setText(title, product.title);
-		}
-
-		// Устанавливаем цену
-		const price = item.querySelector(
-			`.${CSS_CLASSES.CARD_PRICE}`
-		) as HTMLElement;
-		if (price) {
-			setText(price, formatPrice(product.price));
-		}
-
-		// Устанавливаем номер
-		const indexElement = item.querySelector(
-			`.${CSS_CLASSES.BASKET_ITEM_INDEX}`
-		) as HTMLElement;
-		if (indexElement) {
-			setText(indexElement, (index + 1).toString());
-		}
-
-		// Проставляем явный id на кнопку удаления и делаем кнопку type="button"
-		const deleteButton = item.querySelector(
-			`.${CSS_CLASSES.BASKET_ITEM_DELETE}`
-		) as HTMLElement;
-		if (deleteButton) {
-			deleteButton.setAttribute('data-id', product.id);
-			if (deleteButton instanceof HTMLButtonElement) {
-				deleteButton.type = 'button';
-			}
-			// Добавляем обработчик клика напрямую на кнопку
-			addListener(deleteButton, 'click', () => {
-				this.events.emit(EVENTS.PRODUCT_REMOVE, { productId: product.id });
-			});
-		}
-		return item;
+	updateTotal(total: number): void {
+		setText(this.totalElement, formatPrice(total));
 	}
+
 
 	/**
 	 * Рендер компонента
