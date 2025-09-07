@@ -20,6 +20,10 @@ export class NewOrderForm {
         this.orderStep = new OrderStepView(events);
         this.contactsStep = new ContactsStepView(events);
         
+        // Привязываем контекст для обработчиков событий один раз
+        this.handleFormSubmit = this.handleFormSubmit.bind(this);
+        this.handleInputKeydown = this.handleInputKeydown.bind(this);
+        
         this.renderForm();
         this.bindFormEvents();
     }
@@ -81,16 +85,16 @@ export class NewOrderForm {
         const form = this.element.querySelector('form');
         if (form) {
             // Удаляем старые обработчики перед добавлением новых
-            form.removeEventListener('submit', this.handleFormSubmit.bind(this));
-            form.addEventListener('submit', this.handleFormSubmit.bind(this));
+            form.removeEventListener('submit', this.handleFormSubmit);
+            form.addEventListener('submit', this.handleFormSubmit);
         }
 
         // Обработчик нажатия Enter в полях ввода
         const inputs = this.element.querySelectorAll('input');
         inputs.forEach(input => {
             // Удаляем старые обработчики перед добавлением новых
-            input.removeEventListener('keydown', this.handleInputKeydown.bind(this));
-            input.addEventListener('keydown', this.handleInputKeydown.bind(this));
+            input.removeEventListener('keydown', this.handleInputKeydown);
+            input.addEventListener('keydown', this.handleInputKeydown);
         });
     }
 

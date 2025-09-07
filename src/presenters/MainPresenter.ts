@@ -50,6 +50,11 @@ export class MainPresenter implements IMainPresenter {
 		this.orderForm = new NewOrderForm(this.events);
 		this.basket = new Basket(this.events);
 
+		// Привязываем контекст для обработчиков событий формы один раз
+		this.handlePaymentChange = this.handlePaymentChange.bind(this);
+		this.handleFormErrors = this.handleFormErrors.bind(this);
+		this.handleOrderSubmit = this.handleOrderSubmit.bind(this);
+
 		console.log('MainPresenter constructor - calling bindEvents');
 		this.bindEvents();
 		console.log('MainPresenter constructor - end');
@@ -178,9 +183,9 @@ export class MainPresenter implements IMainPresenter {
 		this.orderModel.reset();
 		
 		// Отписываемся от предыдущих событий формы (если были)
-		this.events.off('order:payment:change', this.handlePaymentChange.bind(this));
-		this.events.off('formErrors:change', this.handleFormErrors.bind(this));
-		this.events.off('order:submit', this.handleOrderSubmit.bind(this));
+		this.events.off('order:payment:change', this.handlePaymentChange);
+		this.events.off('formErrors:change', this.handleFormErrors);
+		this.events.off('order:submit', this.handleOrderSubmit);
 		
 		this.modal.setContent(this.orderForm.render());
 		this.modal.open();
@@ -188,9 +193,9 @@ export class MainPresenter implements IMainPresenter {
 
 		// Подписываемся на события формы
 		// Обработчик order:update уже подписан через EVENTS.ORDER_UPDATE в bindEvents()
-		this.events.on('order:payment:change', this.handlePaymentChange.bind(this));
-		this.events.on('formErrors:change', this.handleFormErrors.bind(this));
-		this.events.on('order:submit', this.handleOrderSubmit.bind(this));
+		this.events.on('order:payment:change', this.handlePaymentChange);
+		this.events.on('formErrors:change', this.handleFormErrors);
+		this.events.on('order:submit', this.handleOrderSubmit);
 	}
 
 	/**
