@@ -1,6 +1,6 @@
 import { EventEmitter } from './events';
-import { OrderStepView } from './OrderStepView';
-import { ContactsStepView } from './ContactsStepView';
+import { OrderStepView } from '../../views/OrderStepView';
+import { ContactsStepView } from '../../views/ContactsStepView';
 
 /**
  * Класс формы заказа, который управляет двумя шагами

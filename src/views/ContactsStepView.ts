@@ -1,4 +1,4 @@
-import { BaseOrderForm } from './BaseOrderForm';
+import { BaseOrderForm } from '../components/base/BaseOrderForm';
 
 /**
  * Класс представления второго шага формы заказа (email и телефон)
